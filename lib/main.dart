@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:teste_mapa/marcadores/centros.dart';
+import 'package:teste_mapa/marcadores/cordenacoes.dart';
 
 import 'marcadores/predios.dart';
 
@@ -12,6 +15,19 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final LatLng _initialLocation = const LatLng(-29.718214958928517, -53.71514061433697);
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    init();
+  }
+  init() async{
+    if(await Geolocator.checkPermission() == LocationPermission.denied){
+      Geolocator.requestPermission();
+    }
+  }
 
   late GoogleMapController _controller;
 
@@ -29,29 +45,17 @@ class _MapScreenState extends State<MapScreen> {
   int _markerOption = 0;
   _markerOptions(BuildContext context) {
     if(_markerOption == 0) {
-      _markers.add(Marker(
-        markerId: const MarkerId("Politécnico"),
-        position: const LatLng(-29.72303402194787, -53.717745596549456),
-        infoWindow: InfoWindow(
-          snippet: "Unidade de Educação Básica, Técnica e Tecnológica",
-          title: "Politécnico",
-          onTap: () {
-            setState(() {
-              _markerOption = 1;
-              _controller.moveCamera(
-                CameraUpdate.newCameraPosition(
-                 const CameraPosition(target: LatLng(-29.72271806944029, -53.71787812043287), zoom: 18)
-                )
-              );
-            });
-          },
-        ),
-      ));
-    }
-    if(_markerOption == 1){
-       setState(() {
-         _markers = predios;
-       });
+      setState(() {
+        _markers = centros;
+      });
+    }else if(_markerOption == 1){
+      setState(() {
+        _markers = predios;
+      });
+    }else if(_markerOption == 2){
+      setState(() {
+        _markers = coordenacoes;
+      });
     }
   }
 
