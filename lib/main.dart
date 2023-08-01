@@ -7,7 +7,8 @@ import 'package:teste_mapa/marcadores/cordenacoes.dart';
 import 'marcadores/predios.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  MapScreen({super.key, required this.markerOption});
+  int markerOption;
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -24,35 +25,35 @@ class _MapScreenState extends State<MapScreen> {
     init();
   }
   init() async{
-    if(await Geolocator.checkPermission() == LocationPermission.denied){
+    if(await Geolocator.checkPermission() != LocationPermission.always && await Geolocator.checkPermission() != LocationPermission.whileInUse){
       Geolocator.requestPermission();
     }
   }
 
-  late GoogleMapController _controller;
+  late GoogleMapController mapController;
 
   Future<void> onMapCreated(GoogleMapController controller) async{
-    _controller = controller;
+    mapController = controller;
     String estilo = await DefaultAssetBundle.of(context).loadString('assets/map_style.json');
-    _controller.setMapStyle(estilo);
-    _controller.moveCamera(
+    mapController.setMapStyle(estilo);
+    mapController.moveCamera(
       CameraUpdate.newLatLngBounds(
         LatLngBounds(southwest: const LatLng(-29.73535247163734, -53.735668296166274), northeast: const LatLng(-29.71021618372749, -53.702437172924526)),
         50.0
       )
     );
   }
-  int _markerOption = 0;
-  _markerOptions(BuildContext context) {
-    if(_markerOption == 0) {
+
+  _markerOptions() {
+    if(widget.markerOption == 0) {
       setState(() {
         _markers = centros;
       });
-    }else if(_markerOption == 1){
+    }else if(widget.markerOption == 1){
       setState(() {
         _markers = predios;
       });
-    }else if(_markerOption == 2){
+    }else if(widget.markerOption == 2){
       setState(() {
         _markers = coordenacoes;
       });
@@ -63,7 +64,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _markerOptions(context);
+    _markerOptions();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Mapa UFMS"),
@@ -72,31 +73,44 @@ class _MapScreenState extends State<MapScreen> {
         child: Column(
           children: [
             const SizedBox(height: 25),
-            RadioListTile<int>(title: Text("Centros"), value: 0, groupValue: _markerOption, onChanged: (change){setState(() {
+            RadioListTile<int>(title: Text("Centros"), value: 0, groupValue: widget.markerOption, onChanged: (change){setState(() {
               _markers = {};
-              _markerOption = change!;
-              _markerOptions(context);
+              widget.markerOption = change!;
+              _markerOptions();
+              Navigator.of(context).pop();
             });},),
-            RadioListTile<int>(title: Text("Predios"), value: 1, groupValue: _markerOption, onChanged: (change){setState(() {
+            RadioListTile<int>(title: Text("Predios"), value: 1, groupValue: widget.markerOption, onChanged: (change){setState(() {
               _markers = {};
-              _markerOption = change!;
-              _markerOptions(context);
+              widget.markerOption = change!;
+              _markerOptions();
+              Navigator.of(context).pop();
             });},),
-            RadioListTile<int>(title: Text("Coordenações"), value: 2, groupValue: _markerOption, onChanged: (change){setState(() {
+            RadioListTile<int>(title: Text("Coordenações"), value: 2, groupValue: widget.markerOption, onChanged: (change){setState(() {
               _markers = {};
-              _markerOption = change!;
-              _markerOptions(context);
+              widget.markerOption = change!;
+              _markerOptions();
+              Navigator.of(context).pop();
             });},),
           ],
         ),
       ),
       body: GoogleMap(
+        onTap: (hit){
+          print(hit);
+          if(hit is InfoWindow){
+            mapController.moveCamera(
+              CameraUpdate.newCameraPosition(
+                CameraPosition(target: LatLng(hit.latitude, hit.longitude), zoom: 18)
+              )
+            );
+          }
+        },
         myLocationEnabled: true,
         myLocationButtonEnabled: true,
         onMapCreated: onMapCreated,
         initialCameraPosition: CameraPosition(
           target: _initialLocation,
-          zoom: 15,
+          zoom: 16,
         ),
         markers: _markers,
       ),
@@ -105,7 +119,7 @@ class _MapScreenState extends State<MapScreen> {
 }
 
 void main(){
-  runApp(const MaterialApp(
-    home: MapScreen(),
+  runApp(MaterialApp(
+    home: MapScreen(markerOption: 0),
   ));
 }
