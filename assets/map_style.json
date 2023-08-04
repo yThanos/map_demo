@@ -1,5 +1,6 @@
 [
   {
+    "featureType": "administrative",
     "elementType": "labels",
     "stylers": [
       {
@@ -8,7 +9,26 @@
     ]
   },
   {
-    "featureType": "administrative.neighborhood",
+    "featureType": "landscape",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels",
     "stylers": [
       {
         "visibility": "off"
