@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:label_marker/label_marker.dart';
 import 'package:teste_mapa/marcadores/centros.dart';
 import 'package:teste_mapa/marcadores/cordenacoes.dart';
-
 import 'marcadores/predios.dart';
 
 class MapScreen extends StatefulWidget {
   MapScreen({super.key, required this.markerOption});
   int markerOption;
-  //ToDO criar variavel/função que recebe se é para redirecionar a camera
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -20,7 +19,6 @@ class _MapScreenState extends State<MapScreen> {
   
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     init();
   }
@@ -44,12 +42,13 @@ class _MapScreenState extends State<MapScreen> {
     ));
   }
 
-  _markerOptions() {
+  _markerOptions() async{
     if(widget.markerOption == 0) {
       setState(() {
         _markers = centros;
       });
     }else if(widget.markerOption == 1){
+      Set<Marker> predios = await loadPredios();
       setState(() {
         _markers = predios;
       });
