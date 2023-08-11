@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:label_marker/label_marker.dart';
 import 'package:teste_mapa/marcadores/centros.dart';
 import 'package:teste_mapa/marcadores/cordenacoes.dart';
 import 'marcadores/predios.dart';
@@ -57,6 +56,29 @@ class _MapScreenState extends State<MapScreen> {
         _markers = coordenacoes;
       });
     }
+  }
+
+
+
+  Future<Set<Marker>> loadPredios() async {
+    Set<Marker> set = {};
+    for(Map<String, dynamic> p in predios){
+      BitmapDescriptor icon = await BitmapDescriptor.fromAssetImage(ImageConfiguration(), "assets/images/${p['id']}.png");
+      set.add(Marker(
+        markerId: MarkerId(p['id']),
+        position: LatLng(p['lat'], p['lng']),
+        icon: icon,
+        infoWindow: InfoWindow(
+          title:p['title']
+        ),
+        onTap: (){
+          setState(() {
+            print("teste");
+          });
+        }
+      ));
+    }
+    return set;
   }
 
   Set<Marker> _markers = {};
