@@ -18,11 +18,11 @@ class _MapScreenState extends State<MapScreen> {
   
   @override
   void initState() {
-    super.initState();
     init();
+    super.initState();
   }
   init() async{
-    if(await Geolocator.checkPermission() != LocationPermission.always || await Geolocator.checkPermission() != LocationPermission.whileInUse){
+    if(await Geolocator.checkPermission() != LocationPermission.always && await Geolocator.checkPermission() != LocationPermission.whileInUse){
       Geolocator.requestPermission();
     }
   }
@@ -43,22 +43,63 @@ class _MapScreenState extends State<MapScreen> {
 
   _markerOptions() async{
     if(widget.markerOption == 0) {
+      Set<Marker> centro = await loadCentros();
       setState(() {
-        _markers = centros;
+        _markers = centro;
       });
     }else if(widget.markerOption == 1){
-      Set<Marker> predios = await loadPredios();
+      Set<Marker> predio = await loadPredios();
       setState(() {
-        _markers = predios;
+        _markers = predio;
       });
     }else if(widget.markerOption == 2){
+      Set<Marker> coordenacoe = await loadCoordenacoes();
       setState(() {
-        _markers = coordenacoes;
+        _markers = coordenacoe;
       });
     }
   }
 
+  Future<Set<Marker>> loadCentros() async{
+    Set<Marker> set = {};
+    for(Map<String, dynamic> p in centros){
+      //BitmapDescriptor icon = await BitmapDescriptor.fromAssetImage(ImageConfiguration(), "assets/images/${p['id']}.png");
+      set.add(Marker(
+          markerId: MarkerId(p['id']),
+          position: LatLng(p['lat'], p['lng']),
+          //icon: icon,
+          infoWindow: InfoWindow(
+            title: p['title'],
+            snippet: p['snippet'],
+            onTap: (){
+              setState(() {
+                widget.markerOption = 1;
+                mapController.animateCamera(CameraUpdate.zoomTo(18));
+                _markerOptions();
+              });
+            }
+          )
+      ));
+    }
+    return set;
+  }
 
+  Future<Set<Marker>> loadCoordenacoes() async{
+    Set<Marker> set = {};
+    for(Map<String, dynamic> p in coordenacoes){
+      //BitmapDescriptor icon = await BitmapDescriptor.fromAssetImage(ImageConfiguration(), "assets/images/${p['id']}.png");
+      set.add(Marker(
+        markerId: MarkerId(p['id']),
+        position: LatLng(p['lat'], p['lng']),
+        //icon: icon,
+        infoWindow: InfoWindow(
+          title: p['title'],
+          snippet: p['snippet']
+        )
+      ));
+    }
+    return set;
+  }
 
   Future<Set<Marker>> loadPredios() async {
     Set<Marker> set = {};
@@ -69,13 +110,8 @@ class _MapScreenState extends State<MapScreen> {
         position: LatLng(p['lat'], p['lng']),
         icon: icon,
         infoWindow: InfoWindow(
-          title:p['title']
-        ),
-        onTap: (){
-          setState(() {
-            print("teste");
-          });
-        }
+          title: p['title']
+        )
       ));
     }
     return set;
@@ -109,8 +145,6 @@ class _MapScreenState extends State<MapScreen> {
         onTap: (index){
           if(index == 0){
             mapController.animateCamera(CameraUpdate.zoomTo(16));
-          } else{
-            mapController.animateCamera(CameraUpdate.zoomTo(18));
           }
           setState(() {
             widget.markerOption = index!;
