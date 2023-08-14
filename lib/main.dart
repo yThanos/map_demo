@@ -88,7 +88,8 @@ class _MapScreenState extends State<MapScreen> {
       tileOverlayId: TileOverlayId("MapaUFSM"),
       tileProvider: myTile(),
     )
-  };*/
+  };
+  */
 
 
   @override
