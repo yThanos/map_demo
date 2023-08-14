@@ -4,6 +4,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:teste_mapa/marcadores/centros.dart';
 import 'package:teste_mapa/marcadores/cordenacoes.dart';
 import 'marcadores/predios.dart';
+import 'dart:io' as io;
+
 
 class MapScreen extends StatefulWidget {
   MapScreen({super.key, required this.markerOption});
@@ -40,53 +42,23 @@ class _MapScreenState extends State<MapScreen> {
         )
     ));
   }
-
-  _markerOptions() async{
+  _loadMarkers() async{
+    Set<Marker> set = {};
+    late List<Map<String, dynamic>> builds;
     if(widget.markerOption == 0) {
-      Set<Marker> centro = await loadCentros();
-      setState(() {
-        _markers = centro;
-      });
+     setState(() {
+       builds = centros;
+     });
     }else if(widget.markerOption == 1){
-      Set<Marker> predio = await loadPredios();
       setState(() {
-        _markers = predio;
+        builds = predios;
       });
     }else if(widget.markerOption == 2){
-      Set<Marker> coordenacoe = await loadCoordenacoes();
       setState(() {
-        _markers = coordenacoe;
+        builds = coordenacoes;
       });
     }
-  }
-
-  Future<Set<Marker>> loadCentros() async{
-    Set<Marker> set = {};
-    for(Map<String, dynamic> p in centros){
-      //BitmapDescriptor icon = await BitmapDescriptor.fromAssetImage(ImageConfiguration(), "assets/images/${p['id']}.png");
-      set.add(Marker(
-          markerId: MarkerId(p['id']),
-          position: LatLng(p['lat'], p['lng']),
-          //icon: icon,
-          infoWindow: InfoWindow(
-            title: p['title'],
-            snippet: p['snippet'],
-            onTap: (){
-              setState(() {
-                widget.markerOption = 1;
-                mapController.animateCamera(CameraUpdate.zoomTo(18));
-                _markerOptions();
-              });
-            }
-          )
-      ));
-    }
-    return set;
-  }
-
-  Future<Set<Marker>> loadCoordenacoes() async{
-    Set<Marker> set = {};
-    for(Map<String, dynamic> p in coordenacoes){
+    for(Map<String, dynamic> p in builds){
       //BitmapDescriptor icon = await BitmapDescriptor.fromAssetImage(ImageConfiguration(), "assets/images/${p['id']}.png");
       set.add(Marker(
         markerId: MarkerId(p['id']),
@@ -94,34 +66,34 @@ class _MapScreenState extends State<MapScreen> {
         //icon: icon,
         infoWindow: InfoWindow(
           title: p['title'],
-          snippet: p['snippet']
+          snippet: p['snippet'] ?? '',
+          onTap: (widget.markerOption == 0)? (){
+            setState(() {
+              widget.markerOption = 1;
+              mapController.moveCamera(CameraUpdate.zoomTo(18));
+            });
+            _loadMarkers();
+          }: (){}
         )
       ));
     }
-    return set;
+    _markers = set;
   }
 
-  Future<Set<Marker>> loadPredios() async {
-    Set<Marker> set = {};
-    for(Map<String, dynamic> p in predios){
-      BitmapDescriptor icon = await BitmapDescriptor.fromAssetImage(ImageConfiguration(), "assets/images/${p['id']}.png");
-      set.add(Marker(
-        markerId: MarkerId(p['id']),
-        position: LatLng(p['lat'], p['lng']),
-        icon: icon,
-        infoWindow: InfoWindow(
-          title: p['title']
-        )
-      ));
-    }
-    return set;
-  }
 
   Set<Marker> _markers = {};
 
+  /*Set<TileOverlay> _tileOverlays = {
+    TileOverlay(
+      tileOverlayId: TileOverlayId("MapaUFSM"),
+      tileProvider: myTile(),
+    )
+  };*/
+
+
   @override
   Widget build(BuildContext context) {
-    _markerOptions();
+    _loadMarkers();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Mapa UFMS"),
@@ -143,33 +115,23 @@ class _MapScreenState extends State<MapScreen> {
         ],
         currentIndex: widget.markerOption,
         onTap: (index){
-          if(index == 0){
-            mapController.animateCamera(CameraUpdate.zoomTo(16));
-          }
           setState(() {
             widget.markerOption = index!;
           });
         },
       ),
       body: GoogleMap(
-        onTap: (hit){
-          print(hit);
-          if(hit is InfoWindow){
-            mapController.moveCamera(
-              CameraUpdate.newCameraPosition(
-                CameraPosition(target: LatLng(hit.latitude, hit.longitude), zoom: 18)
-              )
-            );
-          }
-        },
         myLocationEnabled: true,
         myLocationButtonEnabled: true,
         onMapCreated: onMapCreated,
+        markers: _markers,
         initialCameraPosition: CameraPosition(
           target: _initialLocation,
           zoom: 16,
         ),
-        markers: _markers,
+        layoutDirection: TextDirection.ltr,
+        //tileOverlays: _tileOverlays,
+        minMaxZoomPreference: MinMaxZoomPreference(16,20),
       ),
     );
   }
@@ -179,4 +141,15 @@ void main(){
   runApp(MaterialApp(
     home: MapScreen(markerOption: 0),
   ));
+}
+
+
+class myTile implements TileProvider{
+
+  final data =  io.File("assets/tile/mapa.png").readAsBytesSync();
+
+  @override
+  Future<Tile> getTile(int x, int y, int? zoom) {
+    return Future(() => Tile(100, 100, data));
+  }
 }
