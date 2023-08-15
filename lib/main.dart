@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:teste_mapa/marcadores/centros.dart';
@@ -83,13 +84,14 @@ class _MapScreenState extends State<MapScreen> {
 
   Set<Marker> _markers = {};
 
-  /*Set<TileOverlay> _tileOverlays = {
+  final Set<TileOverlay> _tileOverlays = {
     TileOverlay(
       tileOverlayId: TileOverlayId("MapaUFSM"),
       tileProvider: myTile(),
+      transparency: 0.5,
     )
   };
-  */
+
 
 
   @override
@@ -131,7 +133,7 @@ class _MapScreenState extends State<MapScreen> {
           zoom: 16,
         ),
         layoutDirection: TextDirection.ltr,
-        //tileOverlays: _tileOverlays,
+        tileOverlays: _tileOverlays,
         minMaxZoomPreference: MinMaxZoomPreference(16,20),
       ),
     );
@@ -147,10 +149,20 @@ void main(){
 
 class myTile implements TileProvider{
 
-  final data =  io.File("assets/tile/mapa.png").readAsBytesSync();
-
   @override
-  Future<Tile> getTile(int x, int y, int? zoom) {
-    return Future(() => Tile(100, 100, data));
+  Future<Tile> getTile(int x, int y, int? zoom) async{
+    if(x < 22988 || x > 22990 || y > 38440 || y < 38436){
+      final byteData = await rootBundle.load("assets/tile/grey.png");
+      final data = byteData.buffer.asUint8List();
+      return Tile(100, 100, data);
+    }
+    print("${x} - ${y} - ${zoom}");
+    final byteData = await rootBundle.load("assets/tile/mapa.png");
+    final data = byteData.buffer.asUint8List();
+    return Tile(100, 100, data);
+  }
+
+  Future<ByteData> getByteData(int x, int y, int? zoom) async{
+    return rootBundle.load("assets/tiles/${x}-${y}-${zoom}.png");
   }
 }
