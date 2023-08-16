@@ -5,7 +5,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:teste_mapa/marcadores/centros.dart';
 import 'package:teste_mapa/marcadores/cordenacoes.dart';
 import 'marcadores/predios.dart';
-import 'dart:io' as io;
 
 
 class MapScreen extends StatefulWidget {
@@ -131,6 +130,12 @@ class _MapScreenState extends State<MapScreen> {
         initialCameraPosition: CameraPosition(
           target: _initialLocation,
           zoom: 16,
+        ),
+        cameraTargetBounds: CameraTargetBounds(
+          LatLngBounds(
+            southwest: const LatLng(-29.73178647376045, -53.736872535420794),
+            northeast: const LatLng(-29.709484292396667, -53.70193944510095)
+          )
         ),
         layoutDirection: TextDirection.ltr,
         tileOverlays: _tileOverlays,
