@@ -8,8 +8,7 @@ import 'marcadores/predios.dart';
 
 
 class MapScreen extends StatefulWidget {
-  MapScreen({super.key, required this.markerOption});
-  int markerOption;
+  const MapScreen({super.key});
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -17,7 +16,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final LatLng _initialLocation = const LatLng(-29.718214958928517, -53.71514061433697);
-  
+  int _markerOption = 0;
   @override
   void initState() {
     init();
@@ -45,15 +44,15 @@ class _MapScreenState extends State<MapScreen> {
   _loadMarkers() async{
     Set<Marker> set = {};
     late List<Map<String, dynamic>> builds;
-    if(widget.markerOption == 0) {
+    if(_markerOption == 0) {
      setState(() {
        builds = centros;
      });
-    }else if(widget.markerOption == 1){
+    }else if(_markerOption == 1){
       setState(() {
         builds = predios;
       });
-    }else if(widget.markerOption == 2){
+    }else if(_markerOption == 2){
       setState(() {
         builds = coordenacoes;
       });
@@ -67,9 +66,9 @@ class _MapScreenState extends State<MapScreen> {
         infoWindow: InfoWindow(
           title: p['title'],
           snippet: p['snippet'] ?? '',
-          onTap: (widget.markerOption == 0)? (){
+          onTap: (_markerOption == 0)? (){
             setState(() {
-              widget.markerOption = 1;
+              _markerOption = 1;
               mapController.moveCamera(CameraUpdate.zoomTo(18));
             });
             _loadMarkers();
@@ -115,10 +114,10 @@ class _MapScreenState extends State<MapScreen> {
               label: "Coordenações"
           )
         ],
-        currentIndex: widget.markerOption,
+        currentIndex: _markerOption,
         onTap: (index){
           setState(() {
-            widget.markerOption = index!;
+            _markerOption = index!;
           });
         },
       ),
@@ -147,7 +146,7 @@ class _MapScreenState extends State<MapScreen> {
 
 void main(){
   runApp(MaterialApp(
-    home: MapScreen(markerOption: 0),
+    home: MapScreen(),
   ));
 }
 
