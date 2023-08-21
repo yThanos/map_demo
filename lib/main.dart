@@ -79,7 +79,8 @@ class _MapScreenState extends State<MapScreen> {
     _markers = set;
   }
 
-
+  List<Polyline> _polyLines = [];
+  List<LatLng> coord = [];
   Set<Marker> _markers = {};
 
   final Set<TileOverlay> _tileOverlays = {
@@ -89,8 +90,11 @@ class _MapScreenState extends State<MapScreen> {
       transparency: 0.5,
     )
   };
-
-
+  
+  calculaCaminho() async{
+    Position current = await Geolocator.getCurrentPosition();
+    LatLng origin = LatLng(current.latitude, current.longitude);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -132,12 +136,13 @@ class _MapScreenState extends State<MapScreen> {
         ),
         cameraTargetBounds: CameraTargetBounds(
           LatLngBounds(
-            southwest: const LatLng(-29.73178647376045, -53.736872535420794),
-            northeast: const LatLng(-29.709484292396667, -53.70193944510095)
+            southwest: const LatLng(-29.7295482606084, -53.73399081626978),
+            northeast: const LatLng(-29.71277556378688, -53.70736285557391)
           )
         ),
         layoutDirection: TextDirection.ltr,
-        tileOverlays: _tileOverlays,
+        //tileOverlays: _tileOverlays,
+        polylines: Set.of(_polyLines),
         minMaxZoomPreference: MinMaxZoomPreference(16,20),
       ),
     );
@@ -145,7 +150,7 @@ class _MapScreenState extends State<MapScreen> {
 }
 
 void main(){
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     home: MapScreen(),
   ));
 }
