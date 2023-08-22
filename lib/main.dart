@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_map_polyline_new/google_map_polyline_new.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:teste_mapa/marcadores/centros.dart';
 import 'package:teste_mapa/marcadores/cordenacoes.dart';
@@ -72,6 +73,25 @@ class _MapScreenState extends State<MapScreen> {
               mapController.moveCamera(CameraUpdate.zoomTo(18));
             });
             _loadMarkers();
+          }:(_markerOption == 1 || _markerOption == 2)?(){
+            setState(() {
+              showModalBottomSheet(context: context, builder: (context){
+                return Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      ElevatedButton(onPressed: (){
+                        setState(() {
+                          calculaCaminho(LatLng(p['lat'], p['lng']));
+                          Navigator.of(context).pop();
+                        });
+                      }, child: const Text("Calular rota!"))
+                    ],
+                  ),
+                );
+              });
+            });
           }: (){}
         )
       ));
@@ -80,7 +100,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   List<Polyline> _polyLines = [];
-  List<LatLng> coord = [];
+  List<LatLng> coords = [];
   Set<Marker> _markers = {};
 
   final Set<TileOverlay> _tileOverlays = {
@@ -90,10 +110,25 @@ class _MapScreenState extends State<MapScreen> {
       transparency: 0.5,
     )
   };
+
+  GoogleMapPolyline _googleMapPolyline = GoogleMapPolyline(apiKey: "AIzaSyDEalAKzT7YOti3UKWwaCsDqbkSRcj8Hsc");
   
-  calculaCaminho() async{
+  calculaCaminho(LatLng destino) async{
     Position current = await Geolocator.getCurrentPosition();
     LatLng origin = LatLng(current.latitude, current.longitude);
+    coords.addAll((await _googleMapPolyline.getCoordinatesWithLocation(origin: origin, destination: destino, mode: RouteMode.walking)) as Iterable<LatLng>);
+    setState(() {
+      _polyLines.add(
+        Polyline(
+          polylineId: const PolylineId("polilinha"),
+          visible: true,
+          points: coords,
+          width: 4,
+          color: Colors.blue,
+          endCap: Cap.buttCap
+        ));
+      mapController.moveCamera(CameraUpdate.newCameraPosition(CameraPosition(target: LatLng(current.latitude, current.longitude), zoom: 17)));
+    });
   }
 
   @override
